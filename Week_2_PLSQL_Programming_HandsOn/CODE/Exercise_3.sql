@@ -1,4 +1,3 @@
--- Exercise 3: All Required Tables and Data
 
 -- Customers Table
 CREATE TABLE Customers (
