@@ -1,39 +1,58 @@
-SET SERVEROUTPUT ON;
 
-CREATE TABLE accounts (
-    account_id NUMBER PRIMARY KEY,
-    account_type VARCHAR2(20),
-    balance NUMBER
+-- Customers Table
+CREATE TABLE Customers (
+    CustomerID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    DOB DATE,
+    Balance NUMBER,
+    LastModified DATE
 );
 
-INSERT INTO accounts VALUES (1, 'SAVINGS', 5000);
-INSERT INTO accounts VALUES (2, 'CURRENT', 8000);
-INSERT INTO accounts VALUES (3, 'SAVINGS', 15000);
-INSERT INTO accounts VALUES (4, 'SAVINGS', 10000);
-INSERT INTO accounts VALUES (5, 'SAVINGS', 7000);
-INSERT INTO accounts VALUES (6, 'CURRENT', 9000);
-
-
-CREATE TABLE employees (
-    employee_id NUMBER PRIMARY KEY,
-    employee_name VARCHAR2(50),
-    department_id NUMBER,
-    salary NUMBER
+-- Accounts Table
+CREATE TABLE Accounts (
+    AccountID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    AccountType VARCHAR2(20),
+    Balance NUMBER,
+    LastModified DATE,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
 );
 
-INSERT INTO employees VALUES (101, 'Arun Kumar', 10, 30000);
-INSERT INTO employees VALUES (102, 'Priya Raj', 10, 35000);
-INSERT INTO employees VALUES (103, 'Sundar Vel', 20, 40000);
-INSERT INTO employees VALUES (104, 'Meena Devi', 20, 45000);
+-- Employees Table
+CREATE TABLE Employees (
+    EmployeeID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    Position VARCHAR2(50),
+    Salary NUMBER,
+    Department VARCHAR2(50),
+    HireDate DATE
+);
+
+-- Sample Data
+INSERT INTO Customers VALUES (1, 'John Doe', TO_DATE('1985-05-15', 'YYYY-MM-DD'), 1000, SYSDATE);
+INSERT INTO Customers VALUES (2, 'Jane Smith', TO_DATE('1990-07-20', 'YYYY-MM-DD'), 1500, SYSDATE);
+
+INSERT INTO Accounts VALUES (1, 1, 'Savings', 1000, SYSDATE);
+INSERT INTO Accounts VALUES (2, 2, 'Checking', 1500, SYSDATE);
+INSERT INTO Accounts VALUES (3, 1, 'Savings', 5000, SYSDATE);
+INSERT INTO Accounts VALUES (4, 2, 'Savings', 8000, SYSDATE);
+
+INSERT INTO Employees VALUES (1, 'Arun Kumar', 'Manager', 30000, 'HR', TO_DATE('2015-06-15', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (2, 'Priya Raj', 'Developer', 35000, 'HR', TO_DATE('2017-03-20', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (3, 'Sundar Vel', 'Tester', 40000, 'IT', TO_DATE('2018-01-10', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (4, 'Meena Devi', 'Analyst', 45000, 'IT', TO_DATE('2019-09-25', 'YYYY-MM-DD'));
+
 
 COMMIT;
---Scenario 1
+
+-- Scenario 1: Process Monthly Interest for Savings Accounts
+SET SERVEROUTPUT ON;
 
 CREATE OR REPLACE PROCEDURE ProcessMonthlyInterest IS
 BEGIN
-    UPDATE accounts
-    SET balance = balance + (balance * 0.01)
-    WHERE account_type = 'SAVINGS';
+    UPDATE Accounts
+    SET Balance = Balance + (Balance * 0.01)
+    WHERE AccountType = 'Savings';
 
     COMMIT;
 
@@ -41,34 +60,38 @@ BEGIN
 END;
 /
 
+-- Execute Procedure
 BEGIN
     ProcessMonthlyInterest;
 END;
 /
---Scenario 2.
+
+-- Scenario 2: Update Employee Bonus
+SET SERVEROUTPUT ON;
 
 CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus (
-    p_department_id IN NUMBER,
+    p_department IN VARCHAR2,
     p_bonus_percentage IN NUMBER
 ) IS
 BEGIN
-    UPDATE employees
-    SET salary = salary + (salary * (p_bonus_percentage / 100))
-    WHERE department_id = p_department_id;
+    UPDATE Employees
+    SET Salary = Salary + (Salary * (p_bonus_percentage / 100))
+    WHERE Department = p_department;
 
     COMMIT;
 
-    DBMS_OUTPUT.PUT_LINE('Bonus applied to Department ID: ' || p_department_id);
+    DBMS_OUTPUT.PUT_LINE('Bonus applied to Department: ' || p_department);
 END;
 /
 
+-- Execute Procedure
 BEGIN
-    UpdateEmployeeBonus(10, 10);
+    UpdateEmployeeBonus('HR', 10);
 END;
 /
-
 
 -- Scenario 3: Transfer Funds Between Accounts
+SET SERVEROUTPUT ON;
 
 CREATE OR REPLACE PROCEDURE TransferFunds (
     p_source_account_id IN NUMBER,
@@ -77,19 +100,18 @@ CREATE OR REPLACE PROCEDURE TransferFunds (
 ) IS
     v_source_balance NUMBER;
 BEGIN
-    SELECT balance INTO v_source_balance
-    FROM accounts
-    WHERE account_id = p_source_account_id;
+    SELECT Balance INTO v_source_balance
+    FROM Accounts
+    WHERE AccountID = p_source_account_id;
 
     IF v_source_balance >= p_amount THEN
-        UPDATE accounts
-        SET balance = balance - p_amount
-        WHERE account_id = p_source_account_id;
+        UPDATE Accounts
+        SET Balance = Balance - p_amount
+        WHERE AccountID = p_source_account_id;
 
-        -- Add to target account
-        UPDATE accounts
-        SET balance = balance + p_amount
-        WHERE account_id = p_target_account_id;
+        UPDATE Accounts
+        SET Balance = Balance + p_amount
+        WHERE AccountID = p_target_account_id;
 
         COMMIT;
 
@@ -100,8 +122,8 @@ BEGIN
 END;
 /
 
--- Run the Procedure for Scenario 3
+-- Execute Procedure
 BEGIN
-    TransferFunds(3, 6, 2000);
+    TransferFunds(3, 4, 2000);
 END;
 /

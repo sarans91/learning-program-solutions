@@ -1,44 +1,54 @@
 
-CREATE TABLE customers (
-    customer_id NUMBER PRIMARY KEY,
-    customer_name VARCHAR2(50),
-    age NUMBER,
-    balance NUMBER,
+-- Customers Table
+CREATE TABLE Customers (
+    CustomerID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    DOB DATE,
+    Balance NUMBER,
+    LastModified DATE,
     IsVIP VARCHAR2(5)
 );
 
-CREATE TABLE loans (
-    loan_id NUMBER PRIMARY KEY,
-    customer_id NUMBER,
-    interest_rate NUMBER,
-    due_date DATE,
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+-- Loans Table.
+CREATE TABLE Loans (
+    LoanID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    LoanAmount NUMBER,
+    InterestRate NUMBER,
+    StartDate DATE,
+    EndDate DATE,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
 );
 
-INSERT INTO customers VALUES (1, 'Arun Kumar', 65, 12000, 'FALSE');
-INSERT INTO customers VALUES (2, 'Priya Raj', 45, 9000, 'FALSE');
-INSERT INTO customers VALUES (3, 'Sundar Vel', 70, 15000, 'FALSE');
-INSERT INTO customers VALUES (4, 'Meena Devi', 55, 8000, 'FALSE');
+INSERT INTO Customers VALUES (1, 'Arun Kumar', TO_DATE('1959-05-15', 'YYYY-MM-DD'), 12000, SYSDATE, 'FALSE');
+INSERT INTO Customers VALUES (2, 'Priya Raj', TO_DATE('1979-07-20', 'YYYY-MM-DD'), 9000, SYSDATE, 'FALSE');
+INSERT INTO Customers VALUES (3, 'Sundar Vel', TO_DATE('1954-03-10', 'YYYY-MM-DD'), 15000, SYSDATE, 'FALSE');
+INSERT INTO Customers VALUES (4, 'Meena Devi', TO_DATE('1969-10-25', 'YYYY-MM-DD'), 8000, SYSDATE, 'FALSE');
 
-INSERT INTO loans VALUES (101, 1, 10, SYSDATE + 20);
-INSERT INTO loans VALUES (102, 2, 12, SYSDATE + 40);
-INSERT INTO loans VALUES (103, 3, 9, SYSDATE + 15);
-INSERT INTO loans VALUES (104, 4, 11, SYSDATE + 5);
+INSERT INTO Loans VALUES (1, 1, 5000, 10, SYSDATE, SYSDATE + 20);
+INSERT INTO Loans VALUES (2, 2, 6000, 12, SYSDATE, SYSDATE + 40);
+INSERT INTO Loans VALUES (3, 3, 7000, 9, SYSDATE, SYSDATE + 15);
+INSERT INTO Loans VALUES (4, 4, 8000, 11, SYSDATE, SYSDATE + 5);
 
+COMMIT;
+
+-- Scenario 1: Apply Discount to Customers Above 60.
 SET SERVEROUTPUT ON;
 
 DECLARE
     CURSOR cur_customers IS
-        SELECT c.customer_id, l.loan_id, l.interest_rate, c.age
-        FROM customers c
-        JOIN loans l ON c.customer_id = l.customer_id;
+        SELECT c.CustomerID, l.LoanID, l.InterestRate, c.DOB
+        FROM Customers c
+        JOIN Loans l ON c.CustomerID = l.CustomerID;
 
+    v_age NUMBER;
 BEGIN
     FOR rec IN cur_customers LOOP
-        IF rec.age > 60 THEN
-            UPDATE loans
-            SET interest_rate = interest_rate - 1
-            WHERE loan_id = rec.loan_id;
+        v_age := TRUNC(MONTHS_BETWEEN(SYSDATE, rec.DOB) / 12);
+        IF v_age > 60 THEN
+            UPDATE Loans
+            SET InterestRate = InterestRate - 1
+            WHERE LoanID = rec.LoanID;
         END IF;
     END LOOP;
 
@@ -48,24 +58,21 @@ BEGIN
 END;
 /
 
-
 -- Scenario 2: Promote Customers to VIP.
-
 SET SERVEROUTPUT ON;
 
 DECLARE
     CURSOR cur_customers IS
-        SELECT customer_id, customer_name, balance
-        FROM customers;
+        SELECT CustomerID, Name, Balance FROM Customers;
 
 BEGIN
     FOR rec IN cur_customers LOOP
-        IF rec.balance > 10000 THEN
-            UPDATE customers
+        IF rec.Balance > 10000 THEN
+            UPDATE Customers
             SET IsVIP = 'TRUE'
-            WHERE customer_id = rec.customer_id;
+            WHERE CustomerID = rec.CustomerID;
 
-            DBMS_OUTPUT.PUT_LINE('Customer ' || rec.customer_name || ' is now a VIP.');
+            DBMS_OUTPUT.PUT_LINE('Customer ' || rec.Name || ' is now a VIP.');
         END IF;
     END LOOP;
 
@@ -73,22 +80,21 @@ BEGIN
 END;
 /
 
-
---Scenario 3: Send Loan Due Reminders.
+-- Scenario 3: Send Loan Due Reminders.
 SET SERVEROUTPUT ON;
 
 DECLARE
     CURSOR cur_due_loans IS
-        SELECT l.loan_id, c.customer_name, l.due_date
-        FROM loans l
-        JOIN customers c ON l.customer_id = c.customer_id
-        WHERE l.due_date BETWEEN SYSDATE AND SYSDATE + 30;
+        SELECT l.LoanID, c.Name, l.EndDate
+        FROM Loans l
+        JOIN Customers c ON l.CustomerID = c.CustomerID
+        WHERE l.EndDate BETWEEN SYSDATE AND SYSDATE + 30;
 
 BEGIN
     FOR rec IN cur_due_loans LOOP
-        DBMS_OUTPUT.PUT_LINE('Reminder: Loan ID ' || rec.loan_id || 
-                             ' for customer ' || rec.customer_name ||
-                             ' is due on ' || TO_CHAR(rec.due_date, 'DD-MON-YYYY'));
+        DBMS_OUTPUT.PUT_LINE('Reminder: Loan ID ' || rec.LoanID || 
+                             ' for customer ' || rec.Name ||
+                             ' is due on ' || TO_CHAR(rec.EndDate, 'DD-MON-YYYY'));
     END LOOP;
 END;
 /
