@@ -1,0 +1,8 @@
+JPA (Java Persistence API)
+JPA is a specification provided by Java to manage relational data in Java applications. It only defines the rules for object-relational mapping (ORM). JPA provides a set of interfaces and annotations to map Java objects to database tables but does not include the actual implementation. It sets the standard but does not provide working code. JPA is part of the Jakarta EE (formerly Java EE) specification.
+
+Hibernate
+Hibernate is a widely used framework that implements the JPA specification. It provides the working code and functionality required to perform ORM. Hibernate also offers additional features beyond the JPA standard, such as caching, lazy loading, and more flexible query options. Hibernate was created before JPA existed and became one of the most popular ORM tools in Java.
+
+Spring Data JPA
+Spring Data JPA is a Spring module that simplifies the use of JPA and Hibernate. It provides ready-to-use repository interfaces that automatically generate common database operations like save, update, delete, and find. With Spring Data JPA, developers do not need to write most of the boilerplate code for data access. It also supports features like pagination, sorting, and custom query generation based on method names.
