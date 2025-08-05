@@ -1,0 +1,49 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #d8d0d0;
+}
+
+.controls {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #000000;
+}
+
+.controls button {
+  margin: 0 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.app-container {
+  display: flex;
+  justify-content: space-around;
+  width: 90%;
+  margin: auto;
+}
+
+.component-container {
+  flex: 1;
+  padding: 0 20px;
+  border-right: 2px solid green;
+}
+
+.component-container:last-child {
+  border-right: none;
+}
+
+.item-card {
+  margin-bottom: 1.5rem;
+}
+
+h2, h3, h4, p {
+  margin: 0.5rem 0;
+}
+
+.component-placeholder {
+  flex: 1;
+  padding: 0 20px;
+  color: #999;
+  border-right: 2px solid green;
+}
